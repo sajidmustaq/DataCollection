@@ -179,7 +179,7 @@ input {
     border-radius: 5px; /* Rounded corners */
     cursor: pointer; /* Pointer cursor on hover */
     margin: 20px 0; /* Margin above the button */
-    width: 100px;
+    width: auto;
     height: 50px;
     margin: 10px;
     font-weight: 600;
