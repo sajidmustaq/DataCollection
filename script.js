@@ -50,6 +50,7 @@ window.fetchBranchDetails = function () { // Declare as a global function
             <p>شاخ کوڈ: ${branch["شاخ کوڈ"]}</p>
             <p>شاخ: ${branch["شاخ"]}</p>
             <p>مجلس: ${branch["مجلس"]}</p>
+            <p>ٹاؤن: ${branch["ٹاؤن"]}</p>
             <p>ڈسٹرکٹ: ${branch["ڈسٹرکٹ"]}</p>
             <p>سرکاری ڈویژن: ${branch["سرکاری ڈویژن"]}</p>
         `;
