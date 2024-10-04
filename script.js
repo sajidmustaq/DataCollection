@@ -13,15 +13,15 @@ const firebaseConfig = {
     messagingSenderId: "891438830971",
     appId: "1:891438830971:web:8fa97d2921757d6d83d9de",
     measurementId: "G-WG427C9P47"
-  };
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 function renderMainPage() {
-    const app = document.getElementById('app'); // Ensure this is the right element
-    app.innerHTML = `
+    const appElement = document.getElementById('app'); // Ensure this is the right element
+    appElement.innerHTML = `
         <div class="container">
             <h1>شاخ کی تفصیلات</h1>
             <input type="text" id="branchCode" placeholder="شاخ کوڈ" oninput="fetchBranchDetails()">
@@ -31,11 +31,13 @@ function renderMainPage() {
                 <input type="text" id="ward" placeholder="وارڈ نمبر">
                 <button onclick="submitData()">سبمٹ کریں</button>
             </div>
+           
         </div>
     `;
 }
 
-function fetchBranchDetails() {
+// Fetch branch details based on the code
+window.fetchBranchDetails = function () { // Declare as a global function
     const code = document.getElementById('branchCode').value;
     const detailsDiv = document.getElementById('branchDetails');
     const submissionDiv = document.getElementById('submissionFields');
@@ -48,8 +50,8 @@ function fetchBranchDetails() {
             <p>شاخ کوڈ: ${branch["شاخ کوڈ"]}</p>
             <p>شاخ: ${branch["شاخ"]}</p>
             <p>مجلس: ${branch["مجلس"]}</p>
-            <p>ضلع: ${branch["ڈسٹرکٹ"]}</p>
-            <p>ڈویژن: ${branch["سرکاری ڈویژن"]}</p>
+            <p>ڈسٹرکٹ: ${branch["ڈسٹرکٹ"]}</p>
+            <p>سرکاری ڈویژن: ${branch["سرکاری ڈویژن"]}</p>
         `;
         submissionDiv.style.display = 'block'; // Show submission input
     } else {
@@ -58,7 +60,9 @@ function fetchBranchDetails() {
     }
 }
 
-async function submitData() {
+
+// Submit data to Firebase
+window.submitData = async function () { // Declare as a global function
     const yusi = document.getElementById('yusi').value;
     const ward = document.getElementById('ward').value;
     const code = document.getElementById('branchCode').value;
@@ -71,22 +75,41 @@ async function submitData() {
                 ward: ward,
                 timestamp: serverTimestamp()
             });
-            alert(`ڈیٹا محفوظ کر دیا گیا!\nشاخ کوڈ: ${code}\nیوسی: ${yusi}\nوارڈ: ${ward}`);
+            Swal.fire({
+                title: `ڈیٹا محفوظ کر دیا گیا!\nشاخ کوڈ: ${code}\nیوسی: ${yusi}\nوارڈ: ${ward}`,
+                icon: "success"
+            });
+
+            // Clear the form fields after successful submission
+            document.getElementById('branchCode').value = '';
+            document.getElementById('yusi').value = '';
+            document.getElementById('ward').value = '';
+
+            // Hide the submission fields again after form reset
+            document.getElementById('submissionFields').style.display = 'none';
+            document.getElementById('branchDetails').innerHTML = ''; // Clear branch details
+
         } catch (error) {
             console.error('Error saving data:', error);
+
             alert("ڈیٹا محفوظ کرنے میں مسئلہ!");
         }
     } else {
-        alert("یوسی اور وارڈ نمبر دونوں درج کریں!");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "یوسی اور وارڈ نمبر دونوں درج کریں!"
+        });
     }
 }
 
+// Load branch data from branchData.json
 async function loadBranchData() {
     try {
         const response = await fetch('branchData.json'); // Ensure this path is correct
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
-        
+
         branches = data.reduce((acc, branch) => {
             acc[branch["شاخ کوڈ"]] = branch;
             return acc;
@@ -96,5 +119,60 @@ async function loadBranchData() {
     }
 }
 
-// ایپ کو شروع کریں
-loadBranchData().then(() => renderMainPage());
+// Predefined Admin Credentials
+const adminCredentials = {
+    admin1: "123456",
+    admin2: "123456"
+};
+document.addEventListener('DOMContentLoaded', () => {
+    renderMainPage(); // Render the main form
+    loadBranchData(); // Load branch data from branchData.json
+});
+// Show the login modal when "Go to Admin Panel" link is clicked
+function showAdminLoginModal() {
+    const modal = document.getElementById('adminLoginModal');
+    modal.style.display = 'flex';  // Ensure the modal shows up by using 'flex'
+}
+
+// Validate admin credentials
+window.validateAdmin = function () {
+    const username = document.getElementById('adminUsername').value;
+    const password = document.getElementById('adminPassword').value;
+
+    if (adminCredentials[username] && adminCredentials[username] === password) {
+        // Correct credentials
+        Swal.fire({
+            title: "Login successful!",
+            icon: "success",
+            timer: 1500
+        }).then(() => {
+            // Hide modal and redirect to admin page
+            document.getElementById('adminLoginModal').style.display = 'none';
+            window.location.href = "admin.html";
+        });
+    } else {
+        // Invalid credentials
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Admin ID or Password',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            window.location.href = "index.html";
+        });
+    }
+}
+window.showAdminLoginModal = function() {
+    const modal = document.getElementById('adminLoginModal');
+    modal.style.display = 'flex';  // Show modal
+}
+
+// Attach event to "Go to Admin Panel" button
+document.getElementById('adminPanelLink').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+    showAdminLoginModal();  // Show the admin login modal
+});
+document.getElementById('adminPanelLink').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+    showAdminLoginModal();  // Show the admin login modal
+});
