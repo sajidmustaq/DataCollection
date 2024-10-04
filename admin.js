@@ -36,29 +36,35 @@ async function loadBranchData() {
 // Function to fetch and display data in the table
 async function loadTableData() {
     const tableBody = document.querySelector('#branchTable tbody');
-    
+    const totalEntriesDiv = document.getElementById('totalEntries');
+    let totalEntries = 0; // Initialize total entries
+
     try {
-        // Ensure branches are loaded before fetching data from Firebase
-        await loadBranchData();  
+        await loadBranchData();
 
         const querySnapshot = await getDocs(collection(db, "submissions"));
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const branch = branches[data.branchCode] || {};  // Fetch branch details from branchData.json
+            const branch = branches[data.branchCode] || {};
 
             const row = `
                 <tr>
                     <td>${data.branchCode}</td>
                     <td>${branch["شاخ"] || 'نہیں معلوم'}</td>
                     <td>${branch["مجلس"] || 'نہیں معلوم'}</td>
-                    <td>${branch["ڈسٹرکٹ"] || 'نہیں معلوم'}</td>
                     <td>${branch["سرکاری ڈویژن"] || 'نہیں معلوم'}</td>
+                    <td>${branch["ڈسٹرکٹ"] || 'نہیں معلوم'}</td>
+                    <td>${branch["ٹاؤن"] || 'نہیں معلوم'}</td>
                     <td>${data.yusi}</td>
                     <td>${data.ward}</td>
                 </tr>
             `;
             tableBody.insertAdjacentHTML('beforeend', row);
+            totalEntries++; // Increment total entries for each row added
         });
+
+        // Update the total entries display
+        totalEntriesDiv.textContent = `مجموعی اندراجات: ${totalEntries}`;
     } catch (error) {
         console.error('Error fetching data from Firebase:', error);
     }
@@ -67,9 +73,44 @@ async function loadTableData() {
 // Load table data on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', loadTableData);
 
+// Filter function
+function filterTable() {
+    const input = document.getElementById('filterInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('branchTable');
+    const tr = table.getElementsByTagName('tr');
+    let visibleRowCount = 0; // To count visible rows
+
+    // Loop through all table rows (excluding the header)
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let rowVisible = false;
+
+        // Check each cell in the row
+        for (let j = 0; j < td.length; j++) {
+            const cell = td[j];
+            if (cell) {
+                const txtValue = cell.textContent || cell.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    rowVisible = true;
+                    break; // No need to check further cells
+                }
+            }
+        }
+
+        // Toggle row visibility
+        tr[i].style.display = rowVisible ? "" : "none";
+
+        // Count visible rows
+        if (rowVisible) visibleRowCount++;
+    }
+
+    // Update total entries display to show only visible entries
+    document.getElementById('totalEntries').innerText = `مجموعی اندراجات: ${visibleRowCount}`;
+}
+
 // Export function
 function exportTableToExcel(tableID, filename = '') {
-
     let downloadLink;
     const dataType = 'application/vnd.ms-excel';
     const tableSelect = document.getElementById(tableID);
@@ -91,5 +132,14 @@ function exportTableToExcel(tableID, filename = '') {
     downloadLink.click();
     document.body.removeChild(downloadLink); // Remove the link after download
 }
+
+// Make functions available globally
 window.exportTableToExcel = exportTableToExcel;
-document.addEventListener('DOMContentLoaded', loadTableData);
+window.filterTable = filterTable;
+
+// Attach event listeners
+document.getElementById('filterInput').addEventListener('keyup', filterTable);
+document.getElementById('logoutButton').addEventListener('click', () => {
+    localStorage.removeItem('adminAuthenticated');
+    window.location.href = 'index.html'; // Redirect to login page
+});

@@ -10,15 +10,20 @@
 <body>
     <h1>Admin Panel</h1>
     <div id="adminPanel">
-        <button id="exportButton" onclick="exportTableToExcel('branchTable', 'branch_data')">Export to Excel</button>
+        <input type="text" id="filterInput" placeholder="فلٹر کریں..." />
+       <div id="adminBtn"> <button id="exportButton" onclick="exportTableToExcel('branchTable', 'branch_data')">Export to Excel</button>
+        <button id="logoutButton">Log Out</button> </div>
+        <div id="totalEntries">مجموعی اندراجات: 0</div>
+
         <table id="branchTable">
             <thead>
                 <tr>
                     <th>شاخ کوڈ</th>
                     <th>شاخ</th>
                     <th>مجلس</th>
-                    <th>ضلع</th>
                     <th>ڈویژن</th>
+                    <th>ڈسٹرکٹ</th>
+                    <th>ٹاؤن</th>
                     <th>یوسی</th>
                     <th>وارڈ نمبر</th>
                 </tr>

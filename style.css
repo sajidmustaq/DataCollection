@@ -148,12 +148,13 @@ input {
     width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
+    direction: rtl;
 }
 
 #branchTable th, #branchTable td {
     border: 1px solid #ddd; /* Light gray border */
     padding: 8px; /* Padding for table cells */
-    text-align: left; /* Left align text */
+    text-align: right; /* Left align text */
 }
 
 #branchTable th {
@@ -170,7 +171,7 @@ input {
 }
 
 /* Export Button Styles */
-#exportButton {
+#exportButton ,#logoutButton{
     padding: 10px 15px;
     background-color: #28a745; /* Green background */
     color: white; /* White text */
@@ -178,8 +179,16 @@ input {
     border-radius: 5px; /* Rounded corners */
     cursor: pointer; /* Pointer cursor on hover */
     margin: 20px 0; /* Margin above the button */
+    width: 100px;
+    height: 50px;
+    margin: 10px;
+    font-weight: 600;
 }
 
 #exportButton:hover {
     background-color: #218838; /* Darker green on hover */
+}
+#adminBtn{
+  display: flex;
+  justify-content: flex-start;
 }
