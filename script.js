@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
@@ -20,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 function renderMainPage() {
-    const appElement = document.getElementById('app'); // Ensure this is the right element
+    const appElement = document.getElementById('app');
     appElement.innerHTML = `
         <div class="container">
             <h1>شاخ کی تفصیلات</h1>
@@ -31,13 +30,11 @@ function renderMainPage() {
                 <input type="text" id="ward" placeholder="وارڈ نمبر">
                 <button onclick="submitData()">سبمٹ کریں</button>
             </div>
-           
         </div>
     `;
 }
 
-// Fetch branch details based on the code
-window.fetchBranchDetails = function () { // Declare as a global function
+window.fetchBranchDetails = function () {
     const code = document.getElementById('branchCode').value;
     const detailsDiv = document.getElementById('branchDetails');
     const submissionDiv = document.getElementById('submissionFields');
@@ -54,28 +51,28 @@ window.fetchBranchDetails = function () { // Declare as a global function
             <p>ڈسٹرکٹ: ${branch["ڈسٹرکٹ"]}</p>
             <p>سرکاری ڈویژن: ${branch["سرکاری ڈویژن"]}</p>
         `;
-        submissionDiv.style.display = 'block'; // Show submission input
+        submissionDiv.style.display = 'block';
     } else {
         detailsDiv.innerHTML = '<p>کوئی شاخ نہیں ملی۔ براہ کرم درست شاخ کوڈ درج کریں۔</p>';
-        submissionDiv.style.display = 'none'; // Hide submission input
+        submissionDiv.style.display = 'none';
     }
 }
 
-
-// Submit data to Firebase
-window.submitData = async function () { // Declare as a global function
+window.submitData = async function () {
     const yusi = document.getElementById('yusi').value;
     const ward = document.getElementById('ward').value;
     const code = document.getElementById('branchCode').value;
 
-    if (yusi && ward) {
+    if (yusi && ward && code) {
         try {
-            await addDoc(collection(db, "submissions"), {
+            console.log('Attempting to save data:', { branchCode: code, yusi, ward });
+            const docRef = await addDoc(collection(db, "submissions"), {
                 branchCode: code,
                 yusi: yusi,
                 ward: ward,
                 timestamp: serverTimestamp()
             });
+            console.log('Document written with ID: ', docRef.id);
             Swal.fire({
                 title: `ڈیٹا محفوظ کر دیا گیا!\nشاخ کوڈ: ${code}\nیوسی: ${yusi}\nوارڈ: ${ward}`,
                 icon: "success"
@@ -88,26 +85,30 @@ window.submitData = async function () { // Declare as a global function
 
             // Hide the submission fields again after form reset
             document.getElementById('submissionFields').style.display = 'none';
-            document.getElementById('branchDetails').innerHTML = ''; // Clear branch details
+            document.getElementById('branchDetails').innerHTML = '';
 
         } catch (error) {
             console.error('Error saving data:', error);
+            console.error('Error details:', error.code, error.message);
 
-            alert("ڈیٹا محفوظ کرنے میں مسئلہ!");
+            Swal.fire({
+                icon: "error",
+                title: "ڈیٹا محفوظ کرنے میں مسئلہ!",
+                text: `Error: ${error.message}`
+            });
         }
     } else {
         Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "یوسی اور وارڈ نمبر دونوں درج کریں!"
+            text: "براہ کرم تمام فیلڈز کو پُر کریں (شاخ کوڈ، یوسی، اور وارڈ نمبر)!"
         });
     }
 }
 
-// Load branch data from branchData.json
 async function loadBranchData() {
     try {
-        const response = await fetch('branchData.json'); // Ensure this path is correct
+        const response = await fetch('branchData.json');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
 
@@ -120,39 +121,35 @@ async function loadBranchData() {
     }
 }
 
-// Predefined Admin Credentials
 const adminCredentials = {
     admin1: "123456",
     admin2: "123456"
 };
+
 document.addEventListener('DOMContentLoaded', () => {
-    renderMainPage(); // Render the main form
-    loadBranchData(); // Load branch data from branchData.json
+    renderMainPage();
+    loadBranchData();
 });
-// Show the login modal when "Go to Admin Panel" link is clicked
-function showAdminLoginModal() {
+
+window.showAdminLoginModal = function() {
     const modal = document.getElementById('adminLoginModal');
-    modal.style.display = 'flex';  // Ensure the modal shows up by using 'flex'
+    modal.style.display = 'flex';
 }
 
-// Validate admin credentials
 window.validateAdmin = function () {
     const username = document.getElementById('adminUsername').value;
     const password = document.getElementById('adminPassword').value;
 
     if (adminCredentials[username] && adminCredentials[username] === password) {
-        // Correct credentials
         Swal.fire({
             title: "Login successful!",
             icon: "success",
             timer: 1500
         }).then(() => {
-            // Hide modal and redirect to admin page
             document.getElementById('adminLoginModal').style.display = 'none';
             window.location.href = "admin.html";
         });
     } else {
-        // Invalid credentials
         Swal.fire({
             icon: 'error',
             title: 'Invalid Admin ID or Password',
@@ -163,17 +160,8 @@ window.validateAdmin = function () {
         });
     }
 }
-window.showAdminLoginModal = function() {
-    const modal = document.getElementById('adminLoginModal');
-    modal.style.display = 'flex';  // Show modal
-}
 
-// Attach event to "Go to Admin Panel" button
 document.getElementById('adminPanelLink').addEventListener('click', function (event) {
-    event.preventDefault(); // Prevent default link behavior
-    showAdminLoginModal();  // Show the admin login modal
-});
-document.getElementById('adminPanelLink').addEventListener('click', function (event) {
-    event.preventDefault(); // Prevent default link behavior
-    showAdminLoginModal();  // Show the admin login modal
+    event.preventDefault();
+    showAdminLoginModal();
 });
