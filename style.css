@@ -169,7 +169,9 @@ input {
 #branchTable tr:hover {
     background-color: #ddd; /* Light gray on hover */
 }
-
+button{
+font-weight: 700;
+}
 /* Export Button Styles */
 #exportButton ,#logoutButton{
     padding: 10px 15px;

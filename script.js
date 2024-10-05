@@ -24,12 +24,12 @@ function renderMainPage() {
     appElement.innerHTML = `
         <div class="container">
             <h1>شاخ کی تفصیلات</h1>
-            <input type="text" id="branchCode" placeholder="شاخ کوڈ" oninput="fetchBranchDetails()">
+            <input type="text" id="branchCode" placeholder="شاخ کوڈ درج فرمائیں" oninput="fetchBranchDetails()">
             <div id="branchDetails"></div>
             <div id="submissionFields" style="display:none;">
                 <input type="text" id="yusi" placeholder="یوسی">
                 <input type="text" id="ward" placeholder="وارڈ نمبر">
-                <button onclick="submitData()">سبمٹ کریں</button>
+                <button onclick="submitData()">SUBMIT</button>
             </div>
            
         </div>
