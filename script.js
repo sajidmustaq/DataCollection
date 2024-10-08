@@ -161,6 +161,7 @@ window.validateAdmin = function () {
     }
 }
 
+
 window.showAdminLoginModal = function() {
     const modal = document.getElementById('adminLoginModal');
     modal.style.display = 'flex';  // Show modal
