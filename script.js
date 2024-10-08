@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
@@ -19,22 +20,24 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 function renderMainPage() {
-    const appElement = document.getElementById('app');
+    const appElement = document.getElementById('app'); // Ensure this is the right element
     appElement.innerHTML = `
         <div class="container">
             <h1>شاخ کی تفصیلات</h1>
-            <input type="text" id="branchCode" placeholder="شاخ کوڈ" oninput="fetchBranchDetails()">
+            <input type="text" id="branchCode" placeholder="شاخ کوڈ درج فرمائیں" oninput="fetchBranchDetails()">
             <div id="branchDetails"></div>
             <div id="submissionFields" style="display:none;">
                 <input type="text" id="yusi" placeholder="یوسی">
                 <input type="text" id="ward" placeholder="وارڈ نمبر">
-                <button onclick="submitData()">سبمٹ کریں</button>
+                <button onclick="submitData()">SUBMIT</button>
             </div>
+           
         </div>
     `;
 }
 
-window.fetchBranchDetails = function () {
+// Fetch branch details based on the code
+window.fetchBranchDetails = function () { // Declare as a global function
     const code = document.getElementById('branchCode').value;
     const detailsDiv = document.getElementById('branchDetails');
     const submissionDiv = document.getElementById('submissionFields');
@@ -51,28 +54,28 @@ window.fetchBranchDetails = function () {
             <p>ڈسٹرکٹ: ${branch["ڈسٹرکٹ"]}</p>
             <p>سرکاری ڈویژن: ${branch["سرکاری ڈویژن"]}</p>
         `;
-        submissionDiv.style.display = 'block';
+        submissionDiv.style.display = 'block'; // Show submission input
     } else {
         detailsDiv.innerHTML = '<p>کوئی شاخ نہیں ملی۔ براہ کرم درست شاخ کوڈ درج کریں۔</p>';
-        submissionDiv.style.display = 'none';
+        submissionDiv.style.display = 'none'; // Hide submission input
     }
 }
 
-window.submitData = async function () {
+
+// Submit data to Firebase
+window.submitData = async function () { // Declare as a global function
     const yusi = document.getElementById('yusi').value;
     const ward = document.getElementById('ward').value;
     const code = document.getElementById('branchCode').value;
 
-    if (yusi && ward && code) {
+    if (yusi && ward) {
         try {
-            console.log('Attempting to save data:', { branchCode: code, yusi, ward });
-            const docRef = await addDoc(collection(db, "submissions"), {
+            await addDoc(collection(db, "submissions"), {
                 branchCode: code,
                 yusi: yusi,
                 ward: ward,
                 timestamp: serverTimestamp()
             });
-            console.log('Document written with ID: ', docRef.id);
             Swal.fire({
                 title: `ڈیٹا محفوظ کر دیا گیا!\nشاخ کوڈ: ${code}\nیوسی: ${yusi}\nوارڈ: ${ward}`,
                 icon: "success"
@@ -85,30 +88,26 @@ window.submitData = async function () {
 
             // Hide the submission fields again after form reset
             document.getElementById('submissionFields').style.display = 'none';
-            document.getElementById('branchDetails').innerHTML = '';
+            document.getElementById('branchDetails').innerHTML = ''; // Clear branch details
 
         } catch (error) {
             console.error('Error saving data:', error);
-            console.error('Error details:', error.code, error.message);
 
-            Swal.fire({
-                icon: "error",
-                title: "ڈیٹا محفوظ کرنے میں مسئلہ!",
-                text: `Error: ${error.message}`
-            });
+            alert("ڈیٹا محفوظ کرنے میں مسئلہ!");
         }
     } else {
         Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "براہ کرم تمام فیلڈز کو پُر کریں (شاخ کوڈ، یوسی، اور وارڈ نمبر)!"
+            text: "یوسی اور وارڈ نمبر دونوں درج کریں!"
         });
     }
 }
 
+// Load branch data from branchData.json
 async function loadBranchData() {
     try {
-        const response = await fetch('branchData.json');
+        const response = await fetch('branchData.json'); // Ensure this path is correct
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
 
@@ -121,33 +120,34 @@ async function loadBranchData() {
     }
 }
 
+// Predefined Admin Credentials
 const adminCredentials = {
     admin1: "123456",
     admin2: "123456"
 };
-
 document.addEventListener('DOMContentLoaded', () => {
-    renderMainPage();
-    loadBranchData();
+    renderMainPage(); // Render the main form
+    loadBranchData(); // Load branch data from branchData.json
 });
-
-window.showAdminLoginModal = function() {
+// Show the login modal when "Go to Admin Panel" link is clicked
+function showAdminLoginModal() {
     const modal = document.getElementById('adminLoginModal');
-    modal.style.display = 'flex';
+    modal.style.display = 'flex';  // Ensure the modal shows up by using 'flex'
 }
 
+// Validate admin credentials
 window.validateAdmin = function () {
     const username = document.getElementById('adminUsername').value;
     const password = document.getElementById('adminPassword').value;
 
     if (adminCredentials[username] && adminCredentials[username] === password) {
+        localStorage.setItem('adminAuthenticated', 'true'); // Set authentication flag
         Swal.fire({
             title: "Login successful!",
             icon: "success",
             timer: 1500
         }).then(() => {
-            document.getElementById('adminLoginModal').style.display = 'none';
-            window.location.href = "admin.html";
+            window.location.href = "admin.html"; // Redirect to admin page
         });
     } else {
         Swal.fire({
@@ -156,12 +156,25 @@ window.validateAdmin = function () {
             showConfirmButton: false,
             timer: 1500
         }).then(() => {
-            window.location.href = "index.html";
+            window.location.href = "index.html"; // Redirect to the main page on failure
         });
     }
 }
 
+window.showAdminLoginModal = function() {
+    const modal = document.getElementById('adminLoginModal');
+    modal.style.display = 'flex';  // Show modal
+}
+
+// Attach event to "Go to Admin Panel" button
 document.getElementById('adminPanelLink').addEventListener('click', function (event) {
-    event.preventDefault();
-    showAdminLoginModal();
+    event.preventDefault(); // Prevent default link behavior
+    
+    // Check if the user is authenticated
+    if (localStorage.getItem('adminAuthenticated')) {
+        window.location.href = "admin.html"; // Redirect to admin page
+    } else {
+        showAdminLoginModal(); // Show the login modal
+    }
 });
+

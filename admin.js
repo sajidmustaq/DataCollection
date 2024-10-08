@@ -18,10 +18,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Check authentication status
+function checkAuth() {
+    if (!localStorage.getItem('adminAuthenticated')) {
+        window.location.href = 'index.html';
+    }
+}
+
 // Load branch data from branchData.json
 async function loadBranchData() {
     try {
-        const response = await fetch('branchData.json'); // Ensure the correct path to branchData.json
+        const response = await fetch('branchData.json');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         branches = data.reduce((acc, branch) => {
@@ -37,7 +44,7 @@ async function loadBranchData() {
 async function loadTableData() {
     const tableBody = document.querySelector('#branchTable tbody');
     const totalEntriesDiv = document.getElementById('totalEntries');
-    let totalEntries = 0; // Initialize total entries
+    let totalEntries = 0;
 
     try {
         await loadBranchData();
@@ -46,6 +53,15 @@ async function loadTableData() {
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             const branch = branches[data.branchCode] || {};
+
+            // Convert Firestore timestamp to Date object
+            const timestamp = data.timestamp ? data.timestamp.toDate() : new Date();
+            const formattedDate = timestamp.toLocaleDateString('ur-PK', { 
+                timeZone: 'Asia/Karachi',
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric'
+            });
 
             const row = `
                 <tr>
@@ -57,21 +73,18 @@ async function loadTableData() {
                     <td>${branch["ٹاؤن"] || 'نہیں معلوم'}</td>
                     <td>${data.yusi}</td>
                     <td>${data.ward}</td>
+                    <td>${formattedDate}</td>
                 </tr>
             `;
             tableBody.insertAdjacentHTML('beforeend', row);
-            totalEntries++; // Increment total entries for each row added
+            totalEntries++;
         });
 
-        // Update the total entries display
         totalEntriesDiv.textContent = `مجموعی اندراجات: ${totalEntries}`;
     } catch (error) {
         console.error('Error fetching data from Firebase:', error);
     }
 }
-
-// Load table data on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', loadTableData);
 
 // Filter function
 function filterTable() {
@@ -79,33 +92,27 @@ function filterTable() {
     const filter = input.value.toLowerCase();
     const table = document.getElementById('branchTable');
     const tr = table.getElementsByTagName('tr');
-    let visibleRowCount = 0; // To count visible rows
+    let visibleRowCount = 0;
 
-    // Loop through all table rows (excluding the header)
     for (let i = 1; i < tr.length; i++) {
         const td = tr[i].getElementsByTagName('td');
         let rowVisible = false;
 
-        // Check each cell in the row
         for (let j = 0; j < td.length; j++) {
             const cell = td[j];
             if (cell) {
                 const txtValue = cell.textContent || cell.innerText;
                 if (txtValue.toLowerCase().indexOf(filter) > -1) {
                     rowVisible = true;
-                    break; // No need to check further cells
+                    break;
                 }
             }
         }
 
-        // Toggle row visibility
         tr[i].style.display = rowVisible ? "" : "none";
-
-        // Count visible rows
         if (rowVisible) visibleRowCount++;
     }
 
-    // Update total entries display to show only visible entries
     document.getElementById('totalEntries').innerText = `مجموعی اندراجات: ${visibleRowCount}`;
 }
 
@@ -116,30 +123,35 @@ function exportTableToExcel(tableID, filename = '') {
     const tableSelect = document.getElementById(tableID);
     const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
 
-    // Create a download link element
     downloadLink = document.createElement("a");
-
-    // Specify link's href
     document.body.appendChild(downloadLink);
 
-    if (filename === '') filename = 'excel_data.xls'; // Default file name
+    if (filename === '') filename = 'excel_data.xls';
 
     downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-
     downloadLink.download = filename;
-
-    // Trigger the function
     downloadLink.click();
-    document.body.removeChild(downloadLink); // Remove the link after download
+    document.body.removeChild(downloadLink);
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('adminAuthenticated'); // Remove the flag
+    window.location.href = 'index.html'; // Redirect to the main page
+}
+
+
+// Initialize the page
+function init() {
+    checkAuth();
+    loadTableData();
+    document.getElementById('filterInput').addEventListener('keyup', filterTable);
+    document.getElementById('logoutButton').addEventListener('click', logout);
 }
 
 // Make functions available globally
 window.exportTableToExcel = exportTableToExcel;
 window.filterTable = filterTable;
 
-// Attach event listeners
-document.getElementById('filterInput').addEventListener('keyup', filterTable);
-document.getElementById('logoutButton').addEventListener('click', () => {
-    localStorage.removeItem('adminAuthenticated');
-    window.location.href = 'index.html'; // Redirect to login page
-});
+// Run initialization when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', init);
