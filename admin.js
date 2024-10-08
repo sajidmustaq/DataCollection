@@ -141,6 +141,7 @@ function logout() {
 }
 
 
+
 // Initialize the page
 function init() {
     checkAuth();
