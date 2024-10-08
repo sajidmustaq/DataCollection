@@ -134,6 +134,7 @@ function exportTableToExcel(tableID, filename = '') {
 window.exportTableToExcel = exportTableToExcel;
 window.filterTable = filterTable;
 
+
 // Attach event listeners
 document.getElementById('filterInput').addEventListener('keyup', filterTable);
 document.getElementById('logoutButton').addEventListener('click', () => {
